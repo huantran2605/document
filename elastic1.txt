@@ -1,0 +1,88 @@
+Để nhận dữ liệu từ Elasticsearch và xử lý thông báo khi các giá trị vượt quá ngưỡng trong dự án server monitoring của bạn, bạn có thể sử dụng Elasticsearch Java High-Level REST Client và Spring Boot. Dưới đây là một hướng dẫn chi tiết và ví dụ mã nguồn để giúp bạn bắt đầu:
+
+1. Thêm phụ thuộc Maven:
+   Trong tệp pom.xml của dự án Spring Boot, thêm phụ thuộc Maven để sử dụng Elasticsearch Java High-Level REST Client:
+
+   ````xml
+   <dependency>
+       <groupId>org.elasticsearch.client</groupId>
+       <artifactId>elasticsearch-rest-high-level-client</artifactId>
+       <version>7.15.0</version>
+   </dependency>
+   ```
+
+2. Tạo một Bean ElasticsearchClient:
+   Trong lớp cấu hình Spring Boot (thường là lớp chứa phương thức main của ứng dụng), tạo một Bean ElasticsearchClient để kết nối tới Elasticsearch:
+
+   ````java
+   import org.elasticsearch.client.RestHighLevelClient;
+   import org.elasticsearch.client.RestClientBuilder;
+   import org.springframework.beans.factory.annotation.Value;
+   import org.springframework.context.annotation.Bean;
+   import org.springframework.context.annotation.Configuration;
+   import org.elasticsearch.client.RestClient;
+
+   @Configuration
+   public class ElasticsearchConfig {
+   
+       @Value("${elasticsearch.host}")
+       private String host;
+   
+       @Value("${elasticsearch.port}")
+       private int port;
+   
+       @Bean(destroyMethod = "close")
+       public RestHighLevelClient elasticsearchClient() {
+           RestClientBuilder builder = RestClient.builder(new HttpHost(host, port));
+           return new RestHighLevelClient(builder);
+       }
+   }
+   ```
+
+   Trong ví dụ trên, bạn cần đảm bảo rằng các giá trị `elasticsearch.host` và `elasticsearch.port` đã được cấu hình trong tệp `application.properties` hoặc `application.yml` của ứng dụng Spring Boot.
+
+3. Tạo một thành phần xử lý thông báo:
+   Tạo một thành phần Spring Bean để xử lý thông báo khi giá trị vượt quá ngưỡng. Dưới đây là một ví dụ đơn giản:
+
+   ````java
+   import org.elasticsearch.action.search.SearchRequest;
+   import org.elasticsearch.action.search.SearchResponse;
+   import org.elasticsearch.client.RestHighLevelClient;
+   import org.elasticsearch.index.query.QueryBuilders;
+   import org.elasticsearch.search.SearchHit;
+   import org.elasticsearch.search.builder.SearchSourceBuilder;
+   import org.springframework.beans.factory.annotation.Autowired;
+   import org.springframework.scheduling.annotation.Scheduled;
+   import org.springframework.stereotype.Component;
+
+   @Component
+   public class ThresholdNotificationComponent {
+   
+       @Autowired
+       private RestHighLevelClient elasticsearchClient;
+   
+       @Scheduled(fixedRate = 60000) // Xác định tần suất kiểm tra thông báo (đơn vị: millisecond)
+       public void checkThresholds() throws IOException {
+           // Tạo yêu cầu tìm kiếm
+           SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+           searchSourceBuilder.query(QueryBuilders.rangeQuery("field_name").gt(thresholdValue));
+           SearchRequest searchRequest = new SearchRequest("index_name");
+           searchRequest.source(searchSourceBuilder);
+   
+           // Gửi yêu cầu tìm kiếm và nhận kết quả
+           SearchResponse searchResponse = elasticsearchClient.search(searchRequest);
+           SearchHit[] searchHits = searchResponse.getHits().getHits();
+   
+           // Xử lý thông báo cho mỗi kết quả tìm kiếm
+           for (SearchHit hit : searchHits) {
+               // Xử lý thông báo tại đây (ví dụ: gửi email, thông báo GUI, ...)
+           }
+       }
+   }
+   ```
+
+   Trong ví dụ trên, bạn cần điều chỉnh `field_name`, `thresholdValue`, và `index_name` tương ứng với dữ liệu của bạn.
+
+   Lưu ý rằng trong ví dụ này, chúng tôi sử dụng `@Scheduled` để lên lịch kiểm tra thông báo với tần suất cố định. Bạn có thể điều chỉnh tần suất theo ý muốn.
+
+Đây chỉ làđoạn mã mẫu đơn giản để giúp bạn bắt đầu. Tùy thuộc vào yêu cầu cụ thể của bạn, bạn có thể cần tinh chỉnh và mở rộng mã để phù hợp với dự án của mình.
