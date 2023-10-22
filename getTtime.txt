@@ -1,0 +1,13 @@
+	public static void main(String[] args) {
+		
+		// Lấy thời gian hiện tại
+		LocalTime currentTime = LocalTime.now();
+		LocalTime time1 = LocalTime.of(11, 15, 48);
+		
+		Duration d = Duration.between(time1, currentTime);
+		
+		// In ra thời gian hiện tại
+		System.out.println(currentTime);
+		System.out.println("diff: " + currentTime.isAfter(time1));
+		System.out.println("duration: " + d.toHours() + " " + d.toMinutes() + " " + d.toMillis());
+	}
