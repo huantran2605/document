@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Databases Store Data on Disk: A Deep Dive (20 Slides)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+        }
+        .slide {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            position: relative;
+        }
+        .slide-container {
+            width: 100%;
+            height: calc(100vh - 100px);
+            max-width: 1000px;
+            aspect-ratio: 16 / 9;
+            max-height: calc(100vh - 120px);
+            position: relative;
+        }
+        @media (max-width: 768px) {
+            .slide-container {
+                height: auto;
+                min-height: calc(100vh - 100px);
+            }
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div id="presentation" class="slide-container bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col">
+        <!-- Part 1: Foundations -->
+        <div class="slide flex-col items-center justify-center text-center p-8 h-full">
+            <h1 class="text-4xl md:text-5xl font-bold text-blue-900 mb-4">How Databases Store Data on Disk: A Deep Dive</h1>
+            <p class="text-lg md:text-xl text-slate-600 mb-8">Presented by: Gemini | Date: July 30, 2025</p>
+            <p class="text-xl text-slate-800 bg-blue-100 p-4 rounded-lg"><strong>Objective:</strong> To explain how databases store data on disk and why it matters.</p>
+            <p class="mt-6 text-lg italic text-slate-500">"Ever wondered how databases manage terabytes of data while retrieving it quickly?"</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Problem: The Speed Gap</h2>
+            <p class="text-lg text-slate-700 mb-4">A massive speed gap exists between computer components.</p>
+            <div class="text-center p-4 bg-slate-100 rounded-lg">
+                <h3 class="font-bold text-xl mb-2">The Memory Hierarchy</h3>
+                <p class="font-mono text-slate-800 text-lg">CPU Cache <span class="text-red-500 font-bold">&gt;&gt;</span> RAM <span class="text-red-500 font-bold">&gt;&gt;&gt;&gt;&gt;</span> Disk</p>
+                <p class="text-sm mt-2">(nanoseconds) → (microseconds) → (milliseconds)</p>
+            </div>
+            <p class="mt-6 text-lg text-slate-800">The database's job is to hide the slowness of the disk and make data access feel fast.</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Goals of a Storage System</h2>
+            <p class="text-lg text-slate-700 mb-4">A good database storage system must balance these factors:</p>
+            <div class="grid grid-cols-2 gap-4 text-center">
+                <div class="bg-green-100 p-4 rounded-lg"><strong>Durability:</strong> Data is not lost during a crash.</div>
+                <div class="bg-blue-100 p-4 rounded-lg"><strong>Performance:</strong> Reads and writes are fast.</div>
+                <div class="bg-yellow-100 p-4 rounded-lg"><strong>Efficiency:</strong> Disk space is used wisely.</div>
+                <div class="bg-purple-100 p-4 rounded-lg"><strong>Scalability:</strong> Handles growing amounts of data well.</div>
+            </div>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Physical Layer: HDD vs. SSD</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">HDD (Hard Disk Drive)</h3>
+                    <p>Spinning magnetic platters and mechanical heads. Good for sequential access, very slow for random access.</p>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">SSD (Solid State Drive)</h3>
+                    <p>Uses flash memory chips, no moving parts. Much faster than HDDs, especially for random access.</p>
+                </div>
+            </div>
+            <p class="mt-6 text-lg text-slate-800 bg-blue-100 p-4 rounded-lg">The choice of disk type directly impacts database architecture and performance.</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Logical Layer: The Storage Engine</h2>
+            <p class="text-lg text-slate-700 mb-4">The <strong>Storage Engine</strong> is the "brain" between the database and the hard disk. It's responsible for translating logical requests (e.g., `INSERT`, `SELECT`) into physical read/write operations.</p>
+            <div class="p-4 bg-slate-100 rounded-lg">
+                <p class="text-center font-mono">SQL Query → Query Optimizer → <strong>Storage Engine</strong> → Disk I/O</p>
+            </div>
+            <p class="mt-4">Common examples: <strong>InnoDB, MyISAM</strong> (MySQL), <strong>RocksDB</strong> (used in many modern DBs), <strong>WiredTiger</strong> (MongoDB).</p>
+        </div>
+
+        <!-- Part 2: Data Organization -->
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Basic Unit: Pages & Blocks</h2>
+            <p class="text-lg text-slate-700 mb-4">Data on disk is divided into fixed-size units called <strong>Pages</strong> (or Blocks), typically 4KB, 8KB, or 16KB.</p>
+            <div class="mt-6 border-2 border-dashed border-slate-400 p-4 rounded-lg">
+                <div class="bg-blue-200 p-2 rounded-t-md font-bold">Page Header (ID, LSN, free space...)</div>
+                <div class="p-2 grid grid-cols-2 gap-2">
+                    <div class="bg-green-100 p-2 rounded">Row 1 Data</div>
+                    <div class="bg-green-100 p-2 rounded">Row 2 Data</div>
+                </div>
+                <div class="bg-yellow-200 p-2 rounded-b-md font-bold text-right">Slot Array (Pointers to rows)</div>
+            </div>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Row-Oriented Storage</h2>
+            <p class="text-lg text-slate-700 mb-4">Data for a single row (record) is stored contiguously on a page.</p>
+            <div class="p-4 bg-slate-100 rounded-lg font-mono">
+                Page 1: [Row1(id,name,age)], [Row2(id,name,age)]...
+            </div>
+            <ul class="mt-4 list-disc list-inside text-lg">
+                <li><strong>Pros:</strong> Very efficient for OLTP transactions, where you need to read or write an entire row (e.g., `SELECT * FROM users WHERE id=1`).</li>
+                <li><strong>Cons:</strong> Inefficient when analyzing only a few columns from a large table.</li>
+            </ul>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Column-Oriented Storage</h2>
+            <p class="text-lg text-slate-700 mb-4">Data for each column is stored contiguously.</p>
+            <div class="p-4 bg-slate-100 rounded-lg font-mono">
+                File_ID: [id1, id2, id3...]<br>
+                File_Name: [name1, name2, name3...]<br>
+                File_Age: [age1, age2, age3...]
+            </div>
+            <ul class="mt-4 list-disc list-inside text-lg">
+                <li><strong>Pros:</strong> Efficient for analytical (OLAP) queries that only need a few columns. Great data compression.</li>
+                <li><strong>Cons:</strong> Slower when reconstructing an entire row.</li>
+            </ul>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Handling Large Data: Overflow & LOBs</h2>
+            <p class="text-lg text-slate-700 mb-4">What happens when a row is too large to fit on a single page?</p>
+            <ul class="list-disc list-inside text-lg space-y-3">
+                <li><strong>Overflow Pages:</strong> The excess data is stored on one or more separate pages, with a pointer from the original page.</li>
+                <li><strong>LOB (Large Object Storage):</strong> Special data types like `BLOB`, `CLOB`, `TEXT`, `IMAGE` are often stored separately with pointers in the main table.</li>
+            </ul>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Housekeeping: Fragmentation & Compaction</h2>
+            <p class="text-lg text-slate-700 mb-4">Over time, deletes and updates cause wasted space called <strong>fragmentation</strong>.</p>
+            <ul class="list-disc list-inside text-lg">
+                <li><strong>Internal Fragmentation:</strong> Wasted space within pages.</li>
+                <li><strong>External Fragmentation:</strong> Empty, scattered pages.</li>
+            </ul>
+            <p class="mt-4">Databases need <strong>compaction</strong> or <strong>`VACUUM`</strong> processes to reorganize data and reclaim wasted space.</p>
+        </div>
+
+        <!-- Part 3: Indexing -->
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The DB's Table of Contents: What is an Index?</h2>
+            <p class="text-lg text-slate-700">An <strong>Index</strong> is a separate data structure that speeds up queries. It works just like the index at the back of a book.</p>
+            <p class="mt-4 text-lg text-slate-800 bg-yellow-100 p-4 rounded-lg">Instead of "reading" the whole book (full table scan), you just look up the index to go straight to the page you need.</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Workhorse: The B-Tree Index</h2>
+            <p class="text-lg text-slate-700 mb-4">The <strong>B-Tree</strong> is the most common index structure in relational databases.</p>
+            <div class="text-center mt-4 p-4 bg-slate-100 rounded-lg">
+                <p class="font-bold">Root Node</p>
+                <p>↓</p>
+                <p class="font-bold">Branch Nodes (Contain key ranges)</p>
+                <p>↓</p>
+                <p class="font-bold">Leaf Nodes (Contain key-pointer pairs to data)</p>
+            </div>
+            <p class="mt-4">It allows for efficient searching, inserting, and deleting of data in logarithmic time.</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Clustered vs. Non-Clustered Index</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">Clustered Index</h3>
+                    <p>Sorts the physical order of data on disk by the index key. The actual data resides in the leaf nodes. A table can only have one.</p>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">Non-Clustered Index</h3>
+                    <p>A separate structure where leaf nodes contain pointers to the data's location. A table can have many.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 4: Data Integrity -->
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Promise of Safety: ACID & Transactions</h2>
+            <p class="text-lg text-slate-700 mb-4">A <strong>Transaction</strong> is a sequence of operations treated as a single logical unit of work. The <strong>ACID</strong> properties ensure reliability.</p>
+            <p class="font-bold text-xl text-center">A<span class="text-slate-500">tomicity</span> C<span class="text-slate-500">onsistency</span> I<span class="text-slate-500">solation</span> D<span class="text-slate-500">urability</span></p>
+            <p class="mt-4">Disk storage is directly related to <strong>Durability</strong>: once a transaction is committed, it's permanent.</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Safety Net: Write-Ahead Logging (WAL)</h2>
+            <p class="text-xl font-bold text-center text-red-600 bg-red-100 p-4 rounded-lg">"Log first, change data later."</p>
+            <ol class="space-y-2 text-lg text-slate-700 list-decimal list-inside mt-6">
+                <li>Client sends `UPDATE` command.</li>
+                <li>DB writes a description of the change to the log file on disk.</li>
+                <li>DB changes the data in memory (RAM).</li>
+                <li>DB sends success to the client.</li>
+                <li>(Later) Data from RAM is written to the main data files.</li>
+            </ol>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Recovery: Checkpoints & Redo/Undo</h2>
+            <p class="text-lg text-slate-700 mb-4">How does a DB recover from a crash?</p>
+            <ul class="list-disc list-inside text-lg space-y-3">
+                <li><strong>Checkpoint:</strong> A marker in the log indicating all prior changes are safely written to the main data files. This limits the amount of log to scan during recovery.</li>
+                <li><strong>Redo Log:</strong> Contains information to "redo" committed transactions that weren't yet flushed to disk.</li>
+                <li><strong>Undo Log:</strong> Contains information to "undo" incomplete transactions that were active at the time of the crash.</li>
+            </ul>
+        </div>
+
+        <!-- Part 5: Performance & Modern Systems -->
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">Speeding Things Up: The Buffer Pool / Cache</h2>
+            <p class="text-lg text-slate-700 mb-4">The database keeps frequently accessed pages in a region of RAM called the <strong>Buffer Pool</strong> to avoid re-reading from disk.</p>
+            <p>When the pool is full, the DB must decide which page to evict, using algorithms like <strong>LRU (Least Recently Used)</strong>.</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">A Different Approach: LSM-Trees</h2>
+            <p class="text-lg text-slate-700 mb-4"><strong>Log-Structured Merge-Trees</strong> is a data structure optimized for high write throughput, common in NoSQL databases.</p>
+            <ul class="list-disc list-inside text-lg">
+                <li>New writes go to an in-memory structure (MemTable).</li>
+                <li>When full, it's flushed to disk as an immutable file (SSTable).</li>
+                <li>The DB periodically merges these SSTables.</li>
+            </ul>
+            <p class="mt-4">Optimized for writes by avoiding the random write patterns of B-Trees.</p>
+        </div>
+        <div class="slide flex-col justify-center p-8 md:p-12 h-full">
+            <h2 class="text-3xl font-bold text-blue-900 mb-6">The Modern Context: Cloud & NVMe</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">Cloud Storage</h3>
+                    <p>Modern DBs are designed for the cloud, separating compute and storage (e.g., using S3, GCS), which provides flexible scaling.</p>
+                </div>
+                <div class="p-4 border rounded-lg">
+                    <h3 class="font-bold text-xl mb-2">NVMe Drives</h3>
+                    <p>These ultra-fast SSDs are changing old assumptions about I/O, enabling new, more efficient DB architectures.</p>
+                </div>
+            </div>
+        </div>
+        <div class="slide flex-col items-center justify-center text-center p-8 h-full">
+            <h2 class="text-3xl md:text-4xl font-bold text-blue-900 mb-6">Conclusion and Q&A</h2>
+            <p class="text-lg md:text-xl text-slate-700 mb-6">Database storage is a complex, multi-layered system of pages, data organization, indexes, logging, and caching.</p>
+            <p class="text-lg text-slate-800 bg-yellow-100 p-4 rounded-lg"><strong>Call to action:</strong> Try a deep dive into a specific storage engine (e.g., InnoDB or RocksDB).</p>
+            <p class="mt-8 text-2xl font-bold">Thank you for listening!</p>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mt-4 flex items-center space-x-4">
+        <button id="prevBtn" class="bg-slate-500 hover:bg-slate-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+            Prev
+        </button>
+        <span id="slideCounter" class="text-slate-700 font-semibold">Slide 1 / 20</span>
+        <button id="nextBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+            Next
+        </button>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const slideCounter = document.getElementById('slideCounter');
+        let currentSlide = 0;
+
+        function showSlide(n) {
+            slides.forEach((slide) => {
+                slide.classList.remove('active');
+            });
+            if (slides[n]) {
+                slides[n].classList.add('active');
+            }
+            
+            slideCounter.textContent = `Slide ${n + 1} / ${slides.length}`;
+            prevBtn.disabled = n === 0;
+            nextBtn.disabled = n === slides.length - 1;
+        }
+
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                showSlide(currentSlide);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                showSlide(currentSlide);
+            }
+        }
+
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevSlide();
+            }
+        });
+
+        showSlide(currentSlide);
+    </script>
+
+</body>
+</html>
