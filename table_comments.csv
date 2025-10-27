@@ -1,0 +1,373 @@
+No,table,column,comment
+1,ad_action_log,id,Primary key
+2,ad_action_log,action,Performed action keyword
+3,ad_action_log,user_name,Actor username
+4,ad_action_log,description,Action details
+5,ad_action_log,commented,Reviewer/actor note
+6,ad_action_log,time,Action timestamp
+7,ad_action_log,id_user,Actor user ID (FK)
+8,ad_action_log,ip,Actor IP address
+9,ad_apk_import_info,id,Primary key
+10,ad_apk_import_info,apk_name,Uploaded APK filename
+11,ad_apk_import_info,apk_url,Storage URL of APK
+12,ad_apk_import_info,app_package_name,Android package name
+13,ad_apk_import_info,app_name,App display name
+14,ad_apk_import_info,app_signature,APK signature (cert hash)
+15,ad_apk_import_info,app_version_code,Version code (int)
+16,ad_apk_import_info,app_hash_value,File hash (integrity)
+17,ad_apk_import_info,installation_type,Install channel/type
+18,ad_apk_import_info,model,Target device model
+19,ad_apk_import_info,sales_code,Region/sales code
+20,ad_apk_import_info,mcc,Mobile country code
+21,ad_apk_import_info,mnc,Mobile network code
+22,ad_apk_import_info,status,Import status
+23,ad_apk_import_info,request_key,Correlation key
+24,ad_apk_import_info,created_date,Import created time
+25,ad_apk_import_info,app_version_name,Version name (string)
+26,ad_apk_import_info,activated_id,Linked activation ID
+27,ad_app_info_attached_file,id,Primary key
+28,ad_app_info_attached_file,app_id,Linked app ID (FK)
+29,ad_app_info_attached_file,file_id,Linked file ID (FK)
+30,ad_app_mcc,id,Primary key
+31,ad_app_mcc,sub_id,Linked local/sub ID
+32,ad_app_mcc,caller_package,Caller app package
+33,ad_app_mcc,app_package,Target app package
+34,ad_app_mcc,app_name,Target app name
+35,ad_app_mcc,iso_mcc,ISO MCC value
+36,ad_app_mcc,remark,Note
+37,ad_app_mcc,modifier,Last modifier
+38,ad_app_mcc,create_date,Created time
+39,ad_app_mcc,modify_date,Last updated time
+40,ad_app_mcc_request,id,Primary key
+41,ad_app_mcc_request,request_id,External/request ID
+42,ad_app_mcc_request,caller_package,Caller app package
+43,ad_app_mcc_request,app_package,Target app package
+44,ad_app_mcc_request,app_name,Target app name
+45,ad_app_mcc_request,iso_mcc,Requested MCC
+46,ad_app_mcc_request,remark,Request note
+47,ad_app_mcc_request,status,Review status
+48,ad_app_mcc_request,review_comment,Reviewer comment
+49,ad_app_mcc_request,created_date,Requested time
+50,ad_app_mcc_request,modify_date,Last updated time
+51,ad_app_mcc_request,creator,Request creator
+52,ad_app_mcc_request,reviewer,Assigned reviewer
+53,ad_attach_file_info,id,Primary key
+54,ad_attach_file_info,file_name,Original file name
+55,ad_attach_file_info,file_size,File size (bytes)
+56,ad_attach_file_info,download_url,File download URL
+57,ad_attach_file_info,app_id,Related app ID (FK)
+58,ad_attach_file_info,upload_date,Upload timestamp
+59,ad_caller_service_client,id,Primary key
+60,ad_caller_service_client,caller_package,Caller app package
+61,ad_caller_service_client,app_id,Linked app ID (FK)
+62,ad_local_sub,id,Primary key
+63,ad_local_sub,name,Local subscription name
+64,ad_local_sub,email,Contact email
+65,ad_local_sub,description,Subscription description
+66,ad_local_sub,deleted,Soft delete flag
+67,ad_local_sub,created_date,Created time
+68,ad_local_sub,modify_date,Last updated time
+69,ad_local_sub,iso_mcc,ISO MCC
+70,ad_menu,id,Primary key
+71,ad_menu,name,Menu name
+72,ad_menu,level,Menu depth level
+73,ad_menu,ordinal,Display order
+74,ad_menu,parent_id,Parent menu ID
+75,ad_menu,create_date,Created time
+76,ad_menu,modify_date,Last updated time
+77,ad_menu,path,Route/path
+78,ad_package_check_rules_removed,seq_id,Primary key
+79,ad_package_check_rules_removed,caller_package,Caller package
+80,ad_package_check_rules_removed,app_package,Target package
+81,ad_package_check_rules_removed,app_name,App name
+82,ad_package_check_rules_removed,model,Device model
+83,ad_package_check_rules_removed,sales_code,Region/sales code
+84,ad_package_check_rules_removed,mcc,MCC
+85,ad_package_check_rules_removed,mnc,MNC
+86,ad_package_check_rules_removed,create_date,Removal time
+87,ad_package_check_rules_removed,deleted_by,Removed by user
+88,ad_reject_reasons,id,Primary key
+89,ad_reject_reasons,reason,Standardized reject reason
+90,ad_role_menu,id,Primary key
+91,ad_role_menu,role_id,Role ID (FK)
+92,ad_role_menu,menu_id,Menu ID (FK)
+93,ad_role_menu,action,Allowed action
+94,ad_roles,id,Primary key
+95,ad_roles,role,Role name
+96,ad_scan_request,id,Primary key
+97,ad_scan_request,apk_url,APK URL to scan
+98,ad_scan_request,request_id,External/request ID
+99,ad_scan_request,created_date,Requested time
+100,ad_scan_request,app_info_id,Related app info ID
+101,ad_scan_request,apk_status,Scan result status
+102,ad_scan_request,self_check_url,Self-check report URL
+103,ad_sub_app_request,id,Primary key
+104,ad_sub_app_request,caller_package,Caller package
+105,ad_sub_app_request,request_id,External/request ID
+106,ad_sub_app_request,sub_id,Local/sub ID
+107,ad_sub_app_request,comment,Requester note
+108,ad_sub_app_request,status,Review status
+109,ad_sub_app_request,created_date,Requested time
+110,ad_sub_app_request,modify_date,Last updated time
+111,ad_sub_app_request,creator,Request creator
+112,ad_sub_app_request,reviewer,Assigned reviewer
+113,ad_sub_app_request,email_for_notification,Notify email
+114,ad_temp_password,id,Primary key
+115,ad_temp_password,temp_password,Temporary password
+116,ad_temp_password,expired_time,Expiration time
+117,ad_temp_password,user_name,Username
+118,ad_trusted_app_package,id,Primary key
+119,ad_trusted_app_package,package_name,Trusted package name
+120,ad_trusted_app_package,description,Note
+121,ad_user_history,id,Primary key
+122,ad_user_history,user_id,User ID (FK)
+123,ad_user_history,date_time,Event timestamp
+124,ad_user_history,action,User action
+125,ad_user_history,commented,Comment/note
+126,ad_user_history,modifier,Modified by
+127,ad_user_register,id,Primary key
+128,ad_user_register,username,Requested username
+129,ad_user_register,department,Department
+130,ad_user_register,email,User email
+131,ad_user_register,status,Registration status
+132,ad_user_register,roles,Requested roles
+133,ad_user_register,localsub_id,Local/sub ID
+134,ad_user_register,username_hash,Username hash
+135,ad_user_register,email_hash,Email hash
+136,ad_user_register,comment_text,Requester note
+137,ad_user_register,approval_file_path,Approval file path
+138,ad_user_register,approval_comment,Approver comment
+139,ad_user_register,reviewed_date,Review timestamp
+140,ad_user_register,create_date,Created time
+141,ad_user_role,id,Primary key
+142,ad_user_role,user_id,User ID (FK)
+143,ad_user_role,role_id,Role ID (FK)
+144,ad_user_sub,id,Primary key
+145,ad_user_sub,user_id,User ID (FK)
+146,ad_user_sub,sub_id,Local/sub ID
+147,ad_users,id,Primary key
+148,ad_users,username,Login username
+149,ad_users,password,Hashed password
+150,ad_users,department,Department
+151,ad_users,email,Email address
+152,ad_users,comment_text,Admin note
+153,ad_users,enabled,Account enabled flag
+154,ad_users,expire_password_time,Password expiry
+155,ad_users,privacy_policy_yn,Privacy policy consent
+156,ad_users,last_login,Last login time
+157,ad_users,approval_file_path,Approval file path
+158,ad_users,deleted,Soft delete flag
+159,ad_users,modifier,Last modifier
+160,ad_users,view_own_apk,Can view own APKs flag
+161,ad_users,modify_date,Last updated time
+162,ad_users,create_date,Created time
+163,ad_users,username_hash,Username hash
+164,ad_users,email_hash,Email hash
+165,ad_users,sa_email,Service account email
+166,ad_users,sa_email_hash,Service account email hash
+167,ad_whitelist_check_rules_removed,seq_id,Primary key
+168,ad_whitelist_check_rules_removed,caller_package,Caller package
+169,ad_whitelist_check_rules_removed,app_package,Target package
+170,ad_whitelist_check_rules_removed,app_signature,App signature
+171,ad_whitelist_check_rules_removed,app_version_code,Version code
+172,ad_whitelist_check_rules_removed,app_hash_value,File hash
+173,ad_whitelist_check_rules_removed,app_name,App name
+174,ad_whitelist_check_rules_removed,model,Device model
+175,ad_whitelist_check_rules_removed,sales_code,Region/sales code
+176,ad_whitelist_check_rules_removed,mcc,MCC
+177,ad_whitelist_check_rules_removed,mnc,MNC
+178,ad_whitelist_check_rules_removed,deleted_by,Removed by user
+179,ad_whitelist_check_rules_removed,create_date,Removal time
+180,caller_info,caller_package,Caller app package (PK)
+181,caller_info,signature,Caller signature (cert hash)
+182,caller_info,check_policy,Policy applied
+183,caller_info,commented,Note
+184,caller_info,creator,Created by
+185,caller_info,create_date,Created time
+186,caller_version_info,caller_package,Caller package (PK)
+187,caller_version_info,version_code,Caller version code
+188,caller_version_info,create_date,Created time
+189,caller_version_info,creator,Created by
+190,caller_version_info,commented,Note
+191,domain_allow_list,id,Primary key
+192,domain_allow_list,domain,Allowed domain
+193,domain_allow_list,description,Note
+194,package_check_rules,seq_id,Primary key
+195,package_check_rules,caller_package,Caller package
+196,package_check_rules,app_package,Target package
+197,package_check_rules,app_name,App name
+198,package_check_rules,model,Device model
+199,package_check_rules,sales_code,Region/sales code
+200,package_check_rules,mcc,MCC
+201,package_check_rules,commented,Note
+202,package_check_rules,mnc,MNC
+203,package_check_rules,creator,Created by
+204,package_check_rules,modifier,Last modifier
+205,package_check_rules,create_date,Created time
+206,package_check_rules,modify_date,Last updated time
+207,pn_app_info,id,Primary key
+208,pn_app_info,app_name,App name
+209,pn_app_info,apk_type,APK type/category
+210,pn_app_info,installation_type,Install channel/type
+211,pn_app_info,apk_name,APK filename
+212,pn_app_info,apk_url,APK storage URL
+213,pn_app_info,bundle_app_url,App bundle URL
+214,pn_app_info,use_download_link,Use custom download link flag
+215,pn_app_info,download_link,Custom download URL
+216,pn_app_info,google_play_url,Google Play URL
+217,pn_app_info,use_google_play_store_version_yn,Use Play Store version flag
+218,pn_app_info,use_galaxy_store_version_yn,Use Galaxy Store version flag
+219,pn_app_info,package_name,Android package name
+220,pn_app_info,hash_value,File hash
+221,pn_app_info,model,Target device model
+222,pn_app_info,sales_code,Region/sales code
+223,pn_app_info,signature,App signature
+224,pn_app_info,update_signature_manually,Manual signature update flag
+225,pn_app_info,version_code,Version code (int)
+226,pn_app_info,status,Review/whitelist status
+227,pn_app_info,is_updated,Update pending flag
+228,pn_app_info,reviewer_id,Reviewer user ID
+229,pn_app_info,rejected_reason,Rejection reason
+230,pn_app_info,validate_date,Validation timestamp
+231,pn_app_info,request_id,Linked request ID
+232,pn_app_info,create_date,Created time
+233,pn_app_info,modify_date,Last updated time
+234,pn_app_info,version_name,Version name (string)
+235,pn_app_info,activated_id,Activation ID
+236,pn_app_info,mcc,MCC
+237,pn_app_info,mnc,MNC
+238,pn_app_info,entry_point,Distribution entry point
+239,pn_app_info,malicious,Marked malicious flag
+240,pn_app_info,suspicious,Marked suspicious flag
+241,pn_app_info,apk_size,APK size (bytes)
+242,pn_caller_partner,id,Primary key
+243,pn_caller_partner,caller_package,Caller package
+244,pn_caller_partner,partner_id,Partner ID (FK)
+245,pn_caller_registration,id,Primary key
+246,pn_caller_registration,partner_registration_id,Partner registration ID
+247,pn_caller_registration,caller_package,Caller package
+248,pn_caller_registration,caller_name,Caller display name
+249,pn_caller_registration,signature,Caller signature
+250,pn_caller_registration,version_code,Caller version code
+251,pn_caller_registration,model,Device model
+252,pn_caller_registration,sales_code,Region/sales code
+253,pn_caller_registration,activated_id,Activation ID
+254,pn_caller_registration,apk_url,Caller APK URL
+255,pn_caller_registration,created_date,Created time
+256,pn_caller_request,id,Primary key
+257,pn_caller_request,caller_package,Caller package
+258,pn_caller_request,version,Caller version string
+259,pn_caller_request,apk_url,APK URL
+260,pn_caller_request,use_download_link,Use custom download link flag
+261,pn_caller_request,download_link,Custom download URL
+262,pn_caller_request,review_status,Review status
+263,pn_caller_request,commented,Request note
+264,pn_caller_request,reviewed,Reviewed flag
+265,pn_caller_request,owner,Request owner
+266,pn_caller_request,review_date,Review timestamp
+267,pn_caller_request,modify_date,Last updated time
+268,pn_caller_request,create_date,Created time
+269,pn_number_api_call,id,Primary key
+270,pn_number_api_call,number_api_call,API call count
+271,pn_partner,id,Primary key
+272,pn_partner,name,Partner name
+273,pn_partner,description,Partner description
+274,pn_partner,email,Contact email
+275,pn_partner,commented,Note
+276,pn_partner,creator,Created by
+277,pn_partner,modifier,Last modifier
+278,pn_partner,deleted,Soft delete flag
+279,pn_partner,create_date,Created time
+280,pn_partner,modify_date,Last updated time
+281,pn_partner,email_hash,Email hash
+282,pn_partner_registration,id,Primary key
+283,pn_partner_registration,partner_name,Partner name
+284,pn_partner_registration,description,Registration description
+285,pn_partner_registration,username,User name
+286,pn_partner_registration,user_email,User email
+287,pn_partner_registration,client_ip,Client IP
+288,pn_partner_registration,generate_service_key,Generate key flag
+289,pn_partner_registration,review_status,Review status
+290,pn_partner_registration,rejected_reason,Rejection reason
+291,pn_partner_registration,modified_date,Last updated time
+292,pn_partner_registration,created_date,Created time
+293,pn_partner_registration,user_email_hash,User email hash
+294,pn_partner_registration,username_hash,Username hash
+295,pn_partner_registration,sa_email,Service account email
+296,pn_partner_registration,sa_email_hash,Service account email hash
+297,pn_scan_request,id,Primary key
+298,pn_scan_request,apk_url,APK URL to scan
+299,pn_scan_request,request_id,External/request ID
+300,pn_scan_request,created_date,Requested time
+301,pn_scan_request,app_info_id,Related app info ID
+302,pn_scan_request,apk_status,Scan result status
+303,pn_scan_request,self_check_url,Self-check report URL
+304,pn_user_partner,id,Primary key
+305,pn_user_partner,user_id,User ID (FK)
+306,pn_user_partner,partner_id,Partner ID (FK)
+307,pn_whitelist_request,id,Primary key
+308,pn_whitelist_request,caller_package,Caller package
+309,pn_whitelist_request,description,Request description
+310,pn_whitelist_request,comment,Requester note
+311,pn_whitelist_request,email_for_notification,Notification email
+312,pn_whitelist_request,service_device,Target device(s)
+313,pn_whitelist_request,service_country,Target country/region
+314,pn_whitelist_request,due_date,Requested due date
+315,pn_whitelist_request,submit_date,Submission date
+316,pn_whitelist_request,status,Review status
+317,pn_whitelist_request,owner,Request owner
+318,pn_whitelist_request,create_date,Created time
+319,pn_whitelist_request,modify_date,Last updated time
+320,pn_whitelist_request,request_id,External/request ID
+321,service_client,app_id,Client/app ID (PK)
+322,service_client,app_secret,Client secret
+323,service_client,app_name,Client name
+324,service_client,ip_address,Allowed IP address
+325,service_client,commented,Note
+326,service_client,enable,Enabled flag
+327,service_client,creator,Created by
+328,service_client,modifier,Last modifier
+329,service_client,deleted,Soft delete flag
+330,service_client,create_date,Created time
+331,service_client,modify_date,Last updated time
+332,service_client,caller_package,Linked caller package
+333,shedlock,name,Lock name (PK)
+334,shedlock,lock_until,Lock expiry time
+335,shedlock,locked_at,Lock acquired time
+336,shedlock,locked_by,Lock owner node
+337,support_model_info,caller_package,Caller package (PK)
+338,support_model_info,model,Device model
+339,support_model_info,sales_code,Region/sales code
+340,support_model_info,activated_id,Activation ID
+341,support_model_info,creator,Created by
+342,support_model_info,commented,Note
+343,support_model_info,create_date,Created time
+344,user_log,id,Primary key
+345,user_log,date,Log date
+346,user_log,num_login,Login count
+347,user_log,total_reg_users,Total registered users
+348,user_log,use_users,Active users count
+349,vt_virus_scan_result_rejected,caller_package,Caller package (PK)
+350,vt_virus_scan_result_rejected,package_name,Target package
+351,vt_virus_scan_result_rejected,time,Rejection timestamp
+352,whitelist_check_rules,seq_id,Primary key
+353,whitelist_check_rules,caller_package,Caller package
+354,whitelist_check_rules,app_package,Target package
+355,whitelist_check_rules,app_signature,App signature
+356,whitelist_check_rules,app_version_code,Version code
+357,whitelist_check_rules,app_hash_value,File hash
+358,whitelist_check_rules,app_name,App name
+359,whitelist_check_rules,installation_type,Install channel/type
+360,whitelist_check_rules,model,Device model
+361,whitelist_check_rules,sales_code,Region/sales code
+362,whitelist_check_rules,mcc,MCC
+363,whitelist_check_rules,commented,Note
+364,whitelist_check_rules,mnc,MNC
+365,whitelist_check_rules,creator,Created by
+366,whitelist_check_rules,modifier,Last modifier
+367,whitelist_check_rules,create_date,Created time
+368,whitelist_check_rules,modify_date,Last updated time
+369,whitelist_check_rules,app_version_name,Version name
+370,whitelist_check_rules,activated_id,Activation ID
+"context: they are data of columns in all tables of my database. Client upload apk for whitelisting, our server is install agent, review that apk and add it to whitelist if it's ok. users of client will be allowed to download apk if apk's meta data in whitelist. That's it",,,
+"action: pls fill a proper, short and meaningful comment for each column",,,
