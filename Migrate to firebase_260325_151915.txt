@@ -1,0 +1,84 @@
+### Presentation Outline: Migrating from Self-Hosted MongoDB to Firestore with MongoDB Compatibility
+
+#### 1. Introduction to Firestore: Native vs. MongoDB Compatibility Mode
+Firestore is Google Cloud’s fully managed, serverless NoSQL document database, built for high scalability, strong consistency, and real-time data synchronization.
+
+- **Firestore Native**: Uses Google’s proprietary SDKs and query language. It is optimized for real-time listeners, offline support, and seamless integration with Firebase services (Authentication, Cloud Storage, Cloud Functions, etc.). However, it has limitations on complex queries and aggregations.
+- **Firestore with MongoDB Compatibility** (Enterprise Edition, Generally Available since August 2025): Provides a MongoDB-compatible API layer on top of Firestore. Developers can continue using familiar MongoDB drivers, tools (`mongosh`, MongoDB Compass), libraries, and most existing queries/aggregation pipelines with **minimal or zero application code changes**.
+
+**Recommendation**: Choose **Firestore with MongoDB Compatibility** when you want to retain your current MongoDB codebase and ecosystem while benefiting from Google Cloud’s serverless infrastructure.
+
+#### 2. Advantages of Using Firestore with MongoDB Compatibility Compared to Self-Hosted MongoDB
+Migrating from a self-hosted MongoDB environment brings several key benefits:
+
+- **Zero infrastructure management**: Google fully manages servers, replica sets, sharding, backups, patching, monitoring, and scaling — eliminating operational overhead.
+- **Automatic and virtually unlimited scaling**: The database handles traffic spikes effortlessly without manual intervention.
+- **High availability and reliability**: Up to **99.999% SLA**, multi-region replication with **strong consistency**, and single-digit millisecond read performance.
+- **Pay-as-you-go pricing model**: You only pay for actual reads, writes, and storage (based on document and index entry sizes). This is typically more cost-effective than maintaining always-on self-hosted servers, especially during low-traffic periods.
+- **Enterprise-grade features**: Point-in-Time Recovery (PITR), database clones, managed backups, and enhanced security through Private Google Access.
+- **Real-time capabilities**: Native real-time listeners and offline support, even while using MongoDB-compatible drivers.
+- **Focus on development**: Your team can shift effort from database administration to building application features.
+
+In summary, you retain the familiar MongoDB API while gaining the power, reliability, and cost efficiency of a true serverless database.
+
+#### 3. Data Migration Strategies
+The complexity of migration depends on whether your database already contains historical data.
+
+**3.1. For a brand-new (empty) project**  
+Migration is straightforward and requires almost no effort:
+- Create a new Firestore database in **MongoDB compatibility** mode using the Google Cloud Console.
+- Copy the provided MongoDB connection string (URI).
+- Update your application configuration with the new connection string.
+- Reconnect using `mongosh`, MongoDB Compass, or your existing MongoDB driver.
+- All new data will be written directly to Firestore. No data transformation is needed.
+
+**3.2. For existing databases with historical data**  
+Two practical approaches are available:
+
+- **Google’s official migration path** (best for very large databases or near-zero downtime requirements):  
+  Leverages **Datastream** for change data capture (CDC), **Cloud Storage** as intermediate storage, and **Dataflow** for bulk loading and ongoing replication. This method is powerful but involves more configuration steps and incurs additional service costs.
+
+- **Custom batch job** (simpler and more cost-effective for most moderate-sized databases):  
+  Develop a one-time script that reads data from the source MongoDB and writes it to the target Firestore MongoDB-compatible instance.  
+  - Implementation options: Lightweight **Python script** (using `pymongo`, with progress bars and easy retry logic) or directly within your **Spring Boot** backend (using `MongoTemplate` and `BulkOperations`).  
+  - Advantages: Full control over data cleaning/transformation, logging, and resuming interrupted jobs. Ideal for databases under a few hundred GB.
+
+#### 4. Key Considerations and Differences When Migrating Data
+To ensure a smooth migration and avoid write errors, be aware of the following important differences between standard MongoDB and Firestore with MongoDB Compatibility:
+
+- **Document size limit**: MongoDB supports up to **16 MiB** per document; Firestore limits this to **4 MiB**. Documents exceeding the limit must be split or offloaded (e.g., large content moved to Cloud Storage with a reference stored).
+- **Naming restrictions**: 
+  - Collection and field names cannot start with `__` (double underscore), cannot contain the `$` character, cannot be empty, and cannot begin with `system.` or contain `.system.`.
+  - Document `_id` must be one of the supported types (ObjectId, String, 64-bit Integer, 32-bit Integer, Double, Binary, or Object) and cannot exceed 1,500 bytes.
+- **Nested depth limit**: Maximum nesting depth of fields is **20 levels** (each array or object adds one level).
+- **BSON data types**: Some types (e.g., Decimal128, certain Timestamp variants, MinKey/MaxKey) are not fully supported and may be dropped or converted.
+- **Other behavioral differences**: Error messages, certain command behaviors, and performance characteristics of complex aggregations may vary slightly.
+
+**Pre-migration checklist**:
+- Scan all collections for documents larger than 4 MiB.
+- Identify and rename invalid field/collection names.
+- Test the migration process on a small collection first.
+- Implement a data transformation step in your batch job to handle cleaning and compatibility issues.
+
+#### 5. High-Level Architecture After Migration
+After successful migration, your system architecture will look like this:
+
+- **Application Layer**: Spring Boot backend (or other services) connects to Firestore using the standard MongoDB connection string and drivers — no major code changes required.
+- **Database Layer**: Firestore with MongoDB Compatibility running on Google Cloud’s global serverless infrastructure.
+- **Scaling & Resilience**: Automatic horizontal scaling, multi-region replication (optional), strong consistency, and built-in high availability.
+- **Additional Integrations** (optional): Real-time listeners via Firebase SDKs, data export to BigQuery for analytics, or integration with Cloud Functions for serverless business logic.
+- **Security**: Fine-grained access control through IAM and optional VPC Service Controls or Private Google Access.
+
+This results in a modern, low-maintenance architecture that reduces operational toil while maintaining MongoDB compatibility.
+
+#### 6. Cost Comparison and Next Steps
+**Cost Overview**:
+- **Self-hosted MongoDB**: Involves fixed costs for servers/compute (24/7), storage, networking, backups, and engineering time for maintenance and scaling. Costs remain high even during low usage.
+- **Firestore with MongoDB Compatibility**: Pure pay-as-you-go model — charged based on the number and size of read/write operations and stored data. No cost for idle resources. Multi-region setups cost more but provide better availability and lower latency for global users. In many cases, total cost of ownership (TCO) drops significantly after migration, especially for variable workloads.
+
+**Next Steps & Recommendations**:
+- Start with a small proof-of-concept: Migrate one or two collections using the batch job approach.
+- Validate application queries, performance, and real-time features in the new environment.
+- Decide on Regional vs. Multi-Region configuration based on latency and availability needs.
+- Monitor costs and usage after go-live using Google Cloud’s billing tools.
+- Consider a phased migration (read from old DB while writing to new DB) if zero-downtime is critical.
